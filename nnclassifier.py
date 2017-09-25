@@ -1,7 +1,7 @@
 import csv
 import os
 
-import cPickle as cp
+import pickle
 import numpy as np
 import tensorflow as tf
 
@@ -23,8 +23,7 @@ def formatData(csvfile, newfile, pickfile):
                 nrow = [int(i) for i in row]
                 wr.writerow(nrow)
 
-    with open(pickfile, 'wb') as pf:
-        cp.dump(colors, pf)
+    pickle.dump({v: k for k, v in colors.items()}, open(pickfile, 'wb'))
 
 
 def main():
@@ -35,11 +34,10 @@ def main():
     tf.logging.set_verbosity(tf.logging.INFO)
 
     if not os.path.exists(NEW_FILE) or not os.path.exists(DICT_FILE):
+        print("Creating training set")
         formatData(DEFAULT_FILE, NEW_FILE, DICT_FILE)
 
-    with open(DICT_FILE, 'rb') as pf:
-        colors = cp.load(pf)
-
+    colors = pickle.load(open(DICT_FILE, 'rb'))
     ncolors = len(colors)
 
     training_set = tf.contrib.learn.datasets.base.load_csv_without_header(
