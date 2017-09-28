@@ -1,0 +1,4 @@
+one neural net with num colors for output
+two neural net -- one with color (blue, green, yellow, etc.) and one for attribute (none, dark, light, etc.)
+
+

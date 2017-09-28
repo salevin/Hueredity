@@ -1,38 +1,67 @@
+import sys
+
+from PyQt5.QtWidgets import QApplication, QWidget, QColorDialog
 import pickle
 
 import numpy as np
 import tensorflow as tf
 
 
-def main():
-    colors = pickle.load(open('colors.p', 'rb'))
-    ncolors = len(colors)
+class App(QWidget):
 
-    feature_columns = [tf.feature_column.numeric_column("x", shape=[3])]
+    def __init__(self):
+        super().__init__()
+        self.title = 'Hueredity Color Picker'
+        self.left = 10
+        self.top = 10
+        self.width = 320
+        self.height = 200
 
-    classifier = tf.estimator.DNNClassifier(feature_columns=feature_columns,
-                                            hidden_units=[10, 20, 10],
-                                            n_classes=ncolors,
-                                            model_dir="./hueredity_model")
+        self.initClassifier()
+
+        while openColorDialog(self):
+            pass
+
+        sys.exit()
+
+    def initClassifier(self):
+        self.colors = pickle.load(open('colors.p', 'rb'))
+        ncolors = len(self.colors)
+
+        feature_columns = [tf.feature_column.numeric_column("x", shape=[3])]
+
+        self.classifier = tf.estimator.DNNClassifier(
+            feature_columns=feature_columns,
+            hidden_units=[10, 20, 10],
+            n_classes=ncolors,
+            model_dir="./hueredity_model")
+
+    def returnColor(self, color):
+        new_samples = np.array(
+            [color], dtype=np.int)
+
+        pred_in = tf.estimator.inputs.numpy_input_fn(
+            x={"x": new_samples},
+            num_epochs=1,
+            shuffle=False)
+
+        pred = list(self.classifier.predict(input_fn=pred_in))[0]
+        pred_color = self.colors[int(pred["classes"][0])]
+
+        print("{} is color {}".format(new_samples, pred_color))
 
 
-    new_samples = np.array(
-        [[0,139,137],
-         [255, 0, 0],
-         [0, 0, 0]], dtype=np.int)
-    predict_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={"x": new_samples},
-        num_epochs=1,
-        shuffle=False)
+def openColorDialog(self):
+    color = QColorDialog.getColor()
 
-    predictions = list(classifier.predict(input_fn=predict_input_fn))
-    predicted_classes = [colors[int(p["classes"][0])] for p in predictions]
-
-    for i, j in zip(new_samples, predicted_classes):
-        print("{} is color {}".format(i, j))
+    if color.isValid():
+        self.returnColor(color.getRgb()[:3])
+        return True
+    else:
+        return False
 
 
-
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    ex = App()
+    sys.exit(app.exec_())
