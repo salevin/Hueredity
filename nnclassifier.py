@@ -40,7 +40,7 @@ def main():
         with open(DEFAULT_FILE, 'wb') as output:
             output.write(str.encode("r,g,b,color\n"))
             for i in sat:
-                line = ''.join([form[j] for j in i if j in form])
+                line = ''.join(form[j] if j in form else j for j in i.decode())
                 output.write(str.encode(line))
 
     if not os.path.exists(NEW_FILE) or not os.path.exists(DICT_FILE):
