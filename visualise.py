@@ -1,6 +1,7 @@
 import sys
 
-from PyQt5.QtWidgets import QApplication, QWidget, QColorDialog
+from PyQt5.QtWidgets import QApplication, QWidget, QColorDialog, QMessageBox
+from PyQt5.QtGui import QFont
 import pickle
 
 import numpy as np
@@ -48,7 +49,12 @@ class App(QWidget):
         pred = list(self.classifier.predict(input_fn=pred_in))[0]
         pred_color = self.colors[int(pred["classes"][0])]
 
-        print("{} is color {}".format(new_samples, pred_color))
+        msg = QMessageBox()
+        msg.setText("{} is the color {}".format(color, pred_color))
+        font = QFont()
+        font.setPixelSize(20)
+        msg.setFont(font)
+        msg.exec_()
 
 
 def openColorDialog(self):
