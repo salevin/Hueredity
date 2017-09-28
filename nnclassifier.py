@@ -1,10 +1,10 @@
 import csv
 import os
+import urllib.request
 
 import pickle
 import numpy as np
 import tensorflow as tf
-
 
 
 def formatData(csvfile, newfile, pickfile):
@@ -33,6 +33,16 @@ def main():
 
     tf.logging.set_verbosity(tf.logging.INFO)
 
+    if not os.path.exists(DEFAULT_FILE):
+        print("Downloading training set")
+        sat = urllib.request.urlopen('https://xkcd.com/color/satfaces.txt')
+        form = {'[': '', ' ': '', ']': ','}
+        with open(DEFAULT_FILE, 'wb') as output:
+            output.write(str.encode("r,g,b,color\n"))
+            for i in sat:
+                line = ''.join([form[j] for j in i if j in form])
+                output.write(str.encode(line))
+
     if not os.path.exists(NEW_FILE) or not os.path.exists(DICT_FILE):
         print("Creating training set")
         formatData(DEFAULT_FILE, NEW_FILE, DICT_FILE)
@@ -60,24 +70,8 @@ def main():
 
     classifier.train(input_fn=train_input_fn, steps=20000)
 
-    #accuracy_score = classifier.evaluate(input_fn=train_input_fn)["accuracy"]
-
-    #print("\nTrain Accuracy: {0:f}\n".format(accuracy_score))
-
-    new_samples = np.array(
-        [[0,139,137],
-         [255, 0, 0],
-         [0, 0, 0]], dtype=np.int)
-    predict_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={"x": new_samples},
-        num_epochs=1,
-        shuffle=False)
-
-    predictions = list(classifier.predict(input_fn=predict_input_fn))
-    predicted_classes = [colors[int(p["classes"][0])] for p in predictions]
-
-    for i, j in zip(new_samples, predicted_classes):
-        print("{} is color {}".format(i, j))
+    # accuracy_score = classifier.evaluate(input_fn=train_input_fn)["accuracy"]
+    # print("\nTrain Accuracy: {0:f}\n".format(accuracy_score))
 
 
 if __name__ == '__main__':
